@@ -12,9 +12,7 @@ print "Please make sure that you know what you are doing..."
 print "Directory (Press enter for current)"
 fileLoc = raw_input(":")
 
-if fileLoc == "":
-	fileLoc = ""
-else:
+if fileLoc <> "": 
 	os.chdir(fileLoc)
 
 print "Username"
@@ -43,6 +41,8 @@ while listNum >= 0:
 	print "--- Converting: " + fileList[listNum] + "---"
 	os.system("python3 osm2change.py " + fileList[listNum])
 	newFile = fileList[listNum].replace(".osm", ".osc")
+	
+	os.path.getsize(newFile)
 	
 	#TODO Add split code here
 	
