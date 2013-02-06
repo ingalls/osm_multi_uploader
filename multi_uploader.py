@@ -33,32 +33,34 @@ if check != "yes":
 
 print "Go get a beer. This will take awhile!"
 
-fileList = list() #Declares variable
+osmList = list() #Declares variable
 
 for files in os.listdir("."): #Gets a list of osm files
     if files.endswith(".osm"):
-        fileList.append(files) #Store files in list
-listNum = len(fileList) #returns number of osm files
+        osmList.append(files) #Store files in list
+listNum = len(osmList) #returns number of osm files
 listNum = listNum - 1 #Fixes for 0th element
 
 while listNum >= 0:
-	print "--- Converting: " + fileList[listNum] + "---"
-	os.system("python3 osm2change.py " + fileList[listNum])
-	newFile = fileList[listNum].replace(".osm", ".osc")
+    print "--- Converting: " + osmList[listNum] + "---"
+    os.system("python3 osm2change.py " + osmList[listNum])
+    newFile = osmList[listNum].replace(".osm", ".osc")
+
+    fileSize = int(os.path.getsize(newFile) * 0.000976562) #gets size in B, converts to kB, rounds to int.
+    splitNumber = fileSize / 200 #Will split into 200kB bits - NEEDS DISCUSSION
+    if splitNumber > 1:
+        print "---Splitting: " + newFile + " into " + str(splitNumber) + " parts---"
+        os.system("python3 split.py " + newFile + " " + str(splitNumber))
+        os.rename(newFile, newFile + ".old")
 	
-	fileSize = int(os.path.getsize(newFile) * 0.000976562) #gets size in B, converts to kB, rounds to int.
-	splitNumber = fileSize / 200 #Will split into 200kB bits - NEEDS DISCUSSION
-	
-	print "---Splitting: " + newFile + " into " + splitNumber + " parts---"
-	os.system("python3 split.py " + newFile + " " + splitNumber)
-	os.rename(newFile, newFile + ".old")
-	
-	listNum = listNum - 1
+    listNum = listNum - 1
+
+splitList = list()
 
 for files in os.listdir("."): #Regenerate list of osc files with newly generated splits
     if files.endswith(".osc"):
-        fileList.append(files) #Store files in list
-listNum = len(fileList) #returns number of osm files
+        splitList.append(files) #Store files in list
+listNum = len(splitList) #returns number of osm files
 listNum = listNum - 1 #Fixes for 0th element
 
 while listNum >= 0:
@@ -66,7 +68,7 @@ while listNum >= 0:
 	#Since I now have the basic split support this must be added before ANY uploads can take place
 	#otherwise they will break. More info on wiki
 	
-	print "---Uploading: " + fileList[listNum] + "---"
-        # os.system("python3 upload.py -u " + username + " -p " + password + " -m \"" + comment + "\" -t -c yes " + fileList[listNum] )
+	print "---Uploading: " + splitList[listNum] + "---"
+        # os.system("python3 upload.py -u " + username + " -p " + password + " -m \"" + comment + "\" -t -c yes " + splitList[listNum] )
         listNum = listNum - 1 
         
