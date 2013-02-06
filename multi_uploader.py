@@ -44,6 +44,7 @@ while listNum >= 0:
 	os.system("python3 osm2change.py " + fileList[listNum])
 	newFile = fileList[listNum].replace(".osm", ".osc")
 	
+	#Warning - I'm playing around with this
 	fileSize = int(os.path.getsize(newFile) * 0.000976562) #gets size in B, converts to kB, rounds to int.
 	print fileSize
 	
