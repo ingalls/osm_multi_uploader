@@ -25,7 +25,11 @@ password = raw_input(":")
 print "Changeset Comment"
 comment = raw_input(":")
 
-# TODO poll array to find out how many files are to be uploaded and inform user.
+print "\n\n\n"
+print "Username: " + username
+print "Password: " + password
+print "Comment: " + comment
+
 print "\nAre you sure you wish to continue?"
 check = raw_input("type 'yes' to continue \n:")
 if check != "yes":
@@ -42,7 +46,7 @@ listNum = len(osmList) #returns number of osm files
 listNum = listNum - 1 #Fixes for 0th element
 
 while listNum >= 0:
-    print "--- Converting: " + osmList[listNum] + "---"
+    print "---Converting: " + osmList[listNum] + "---"
     os.system("python3 osm2change.py " + osmList[listNum])
     newFile = osmList[listNum].replace(".osm", ".osc")
 
