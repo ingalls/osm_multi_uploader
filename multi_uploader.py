@@ -46,6 +46,8 @@ while listNum >= 0:
 	
 	#TODO Add split code here
 	
+	#TODO Add diff code here
+	
 	os.system("python3 upload.py -u " + username + " -p " + password + " -m \"" + comment + "\" -t -c yes " + newFile )
 	listNum = listNum - 1
 
