@@ -44,6 +44,6 @@ while listNum >= 0:
 	print "--- Converting: " + fileList[listNum] + "---"
 	os.system("python3 osm2change.py " + fileList[listNum])
 	newFile = fileList[listNum].replace(".osm", ".osc")
-	os.system("python3 upload.py -u " + username + " -p " + password + " -m " + comment + " -t -c yes " + newFile )
+	os.system("python3 upload.py -u " + username + " -p " + password + " -m \"" + comment + "\" -t -c yes " + newFile )
 	listNum = listNum - 1
 
