@@ -6,6 +6,7 @@
 # ~ingalls
 
 import os
+import shutil
 
 print "OSM Multi-Uploader v0.1"
 print "Please make sure that you know what you are doing..."
@@ -32,7 +33,7 @@ if check != "yes":
 
 fileList = list() #Declares variable
 
-for files in os.listdir("."): #Files in current directory
+for files in os.listdir("."): #Gets a list of osm files
     if files.endswith(".osm"):
         fileList.append(files) #Store files in list
 
@@ -46,12 +47,28 @@ while listNum >= 0:
 	
 	#Warning - I'm playing around with this
 	fileSize = int(os.path.getsize(newFile) * 0.000976562) #gets size in B, converts to kB, rounds to int.
-	print fileSize
+	splitNumber = fileSize / 200 #Will split into 200kB bits - NEEDS DISCUSSION
 	
-	#TODO Add split code here
+	os.system("python3 split.py " + newFile + " " + splitNumber
+	os.rename(newFile, newFile + ".old")
+	
 	
 	#TODO Add diff code here
 	
-	 os.system("python3 upload.py -u " + username + " -p " + password + " -m \"" + comment + "\" -t -c yes " + newFile )
+	
 	listNum = listNum - 1
 
+for files in os.listdir("."): #Regenerate list of osc files with splits
+    if files.endswith(".osc"):
+        fileList.append(files) #Store files in list
+        listNum = len(fileList) #returns number of osm files
+	listNum = listNum - 1 #Fixes for 0th element
+
+
+
+while listNum >= 0:
+        os.system("python3 upload.py -u " + username + " -p " + password + " -m \"" + comment + "\" -t -c yes " + newFile )
+        
+        
+        
+        
