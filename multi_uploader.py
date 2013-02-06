@@ -13,7 +13,7 @@ print "Directory (Press enter for current)"
 fileLoc = raw_input(":")
 
 if fileLoc <> "": 
-	os.chdir(fileLoc)
+	os.chdir(fileLoc) #change to user specified directory
 
 print "Username"
 username = raw_input(":")
@@ -24,19 +24,21 @@ password = raw_input(":")
 print "Changeset Comment"
 comment = raw_input(":")
 
+# TODO poll array to find out how many files are to be uploaded and inform user.
 print "\nAre you sure you wish to continue?"
 check = raw_input("type 'yes' to continue \n:")
 if check != "yes":
 	exit()
 
-fileList = list()
+fileList = list() #Declares variable
 
-for files in os.listdir("."):
+for files in os.listdir("."): #Files in current directory
     if files.endswith(".osm"):
-        fileList.append(files)
+        fileList.append(files) #Store files in list
 
-listNum = len(fileList)
-listNum = listNum - 1
+listNum = len(fileList) #returns number of osm files
+listNum = listNum - 1 #Fixes for 0th element
+
 while listNum >= 0:
 	print "--- Converting: " + fileList[listNum] + "---"
 	os.system("python3 osm2change.py " + fileList[listNum])
