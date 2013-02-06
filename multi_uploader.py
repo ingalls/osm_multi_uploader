@@ -31,6 +31,8 @@ check = raw_input("type 'yes' to continue \n:")
 if check != "yes":
 	exit()
 
+print "Go get a beer. This will take awhile!"
+
 fileList = list() #Declares variable
 
 for files in os.listdir("."): #Gets a list of osm files
@@ -67,6 +69,4 @@ while listNum >= 0:
 	print "---Uploading: " + fileList[listNum] + "---"
         # os.system("python3 upload.py -u " + username + " -p " + password + " -m \"" + comment + "\" -t -c yes " + fileList[listNum] )
         listNum = listNum - 1 
-        
-        
         
