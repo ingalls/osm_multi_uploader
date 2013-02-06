@@ -9,7 +9,6 @@ import os
 
 print "OSM Multi-Uploader v0.1"
 print "Please make sure that you know what you are doing..."
-print "'nuff said! \n"
 print "Directory (Press enter for current)"
 fileLoc = raw_input(":")
 
