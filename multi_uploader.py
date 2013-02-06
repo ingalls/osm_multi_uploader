@@ -50,7 +50,7 @@ while listNum >= 0:
 	splitNumber = fileSize / 200 #Will split into 200kB bits - NEEDS DISCUSSION
 	
 	print "---Splitting: " + newFile + " into " + splitNumber + " parts---"
-	os.system("python3 split.py " + newFile + " " + splitNumber
+	os.system("python3 split.py " + newFile + " " + splitNumber)
 	os.rename(newFile, newFile + ".old")
 	
 	listNum = listNum - 1
