@@ -61,8 +61,11 @@ listNum = listNum - 1 #Fixes for 0th element
 
 while listNum >= 0:
 	#TODO Add diff code here
+	#Since I now have the basic split support this must be added before ANY uploads can take place
+	#otherwise they will break. More info on wiki
+	
 	print "---Uploading: " + fileList[listNum] + "---"
-        os.system("python3 upload.py -u " + username + " -p " + password + " -m \"" + comment + "\" -t -c yes " + fileList[listNum] )
+        # os.system("python3 upload.py -u " + username + " -p " + password + " -m \"" + comment + "\" -t -c yes " + fileList[listNum] )
         listNum = listNum - 1 
         
         
