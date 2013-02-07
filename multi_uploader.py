@@ -50,6 +50,11 @@ while listNum >= 0:
     os.system("python3 osm2change.py " + osmList[listNum])
     newFile = osmList[listNum].replace(".osm", ".osc")
 
+    print "---Sorting: " + newFile + "---"
+    os.system("python smarter-sort.py " + newFile)
+    os.rename(newFile, newFile + ".old")
+    newFile = newFile.replace(".osc","-sorted.osc")
+
     fileSize = int(os.path.getsize(newFile) * 0.000976562) #gets size in B, converts to kB, rounds to int.
     splitNumber = fileSize / 200 #Will split into 200kB bits - NEEDS DISCUSSION
     if splitNumber > 1:
@@ -68,6 +73,7 @@ listNum = len(splitList) #returns number of osm files
 listNum = listNum - 1 #Fixes for 0th element
 
 while listNum >= 0:
+
 	#TODO Add diff code here
 	#Since I now have the basic split support this must be added before ANY uploads can take place
 	#otherwise they will break. More info on wiki
