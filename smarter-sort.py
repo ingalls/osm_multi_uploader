@@ -207,7 +207,7 @@ try:
     else:
         filename_base = filename
 
-    print >>sys.stderr, u"Parsing osmChange..."
+    print >>sys.stderr, u"   Parsing osmChange..."
     tree = ElementTree.parse(filename)
     root = tree.getroot()
     if root.tag != "osmChange" or (root.attrib.get("version") != "0.3" and
@@ -215,7 +215,7 @@ try:
         print >>sys.stderr, u"File %s is not a v0.3 osmChange file!" % (filename,)
         sys.exit(1)
 
-    print >>sys.stderr, u"Building dependency trees..."
+    print >>sys.stderr, u"   Building dependency trees..."
     # Note: assumes each element appearing only once - easy to work around
     # (we should really detect those and compress all operations on any given
     #  item into 0 (creation + deletion) or 1 operation (any other scenario).)
@@ -270,7 +270,7 @@ try:
         if not opers[name]["depended"]:
             update_refs(name, opers[name]["scale"])
 
-    print >>sys.stderr, u"Sorting references..."
+    print >>sys.stderr, u"   Sorting references..."
     for operation in ops:
         root.remove(operation)
     if opers: # Take a random starting point
@@ -281,7 +281,7 @@ try:
             globalbbox[1][1] - globalbbox[0][1])
     queueup(opers)
 
-    print >>sys.stderr, u"Writing osmChange..."
+    print >>sys.stderr, u"   Writing osmChange..."
     opattrs = { "generator": "smarter-sort.py", "version": "0.3" }
     popname = "desert storm"
 

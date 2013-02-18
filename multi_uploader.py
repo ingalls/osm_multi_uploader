@@ -1,3 +1,18 @@
+#LISCENSE
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+#INTRODUCTION
 # This program serves as an interface with the bulk
 # uploader program. It allows one to specify a directory
 # containing multiple osm files and have them all uploaded at
@@ -5,25 +20,75 @@
 # a community consensus before massive imports.
 # ~ingalls
 
+#REQUIREMENTS
+# Python2
+# Python3
+# Perl
+
 import os
 import shutil
+import sys
 
-print "OSM Multi-Uploader v0.1"
-print "Please make sure that you know what you are doing..."
-print "Directory (Press enter for current)"
-fileLoc = raw_input(":")
 
-if fileLoc <> "": 
+rootLoc = os.getcwd()
+version = "0.2"
+fileLoc = ""
+username = ""
+password = ""
+comment = ""
+num = 0
+
+if len(sys.argv) == 0:
+	print "OSM MultiUploader"
+	print "-----"
+	print "-u <username>"
+	print "-p <password>"
+	print "-c <changeset comment>"
+	print "-d <upload> "
+	print "-----"
+	print "-m (Prompt for values)"
+	sys.exit(1)
+	
+print "OSM Multi-Uploader " + version
+
+#if sys.argv !contains "-m"
+while num < len(sys.argv)-2:
+	num += 1
+	arg = sys.argv[num]
+	if arg == "-u":
+		num += 1
+		username = sys.argv[num]
+	elif arg == "-p":
+		num += 1
+		password =sys.argv[num]
+	elif arg == "-d":
+		num += 1
+		fileLoc = sys.argv[num]
+	elif arg == "-c":
+		num += 1
+		comment = sys.argv[num]
+
+if fileLoc == "":
+	print "Enter Directory (Press enter for current)"
+	fileLoc = raw_input(":")
+
+if username == "":
+	print "Enter Username"
+	username = raw_input(":")
+
+if password == "":
+	print "Enter Password"
+	password = raw_input(":")
+
+if comment == "":
+	print "Enter Changeset Comment"
+	comment = raw_input(":")
+
+if fileLoc <> "" and fileLoc <> ".":
+	fileLoc = rootLoc + fileLoc
 	os.chdir(fileLoc) #change to user specified directory
-
-print "Username"
-username = raw_input(":")
-
-print "Password"
-password = raw_input(":")
-
-print "Changeset Comment"
-comment = raw_input(":")
+else:
+	fileLoc = rootLoc
 
 print "\n\n\n"
 print "Username: " + username
@@ -35,9 +100,9 @@ check = raw_input("type 'yes' to continue \n:")
 if check != "yes":
 	exit()
 
-print "Go get a beer. This will take awhile!"
+print "Go get a beer. I've got this now!"
 
-osmList = list() #Declares variable
+osmList = list() #stores list of osm files to be split
 
 for files in os.listdir("."): #Gets a list of osm files
     if files.endswith(".osm"):

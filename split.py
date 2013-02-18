@@ -72,7 +72,7 @@ try:
     for operation in root:
         element_count += len(operation)
 
-    sys.stderr.write("Number of parts: %r\n" % (element_count,))
+    sys.stderr.write("   Number of parts: %r\n" % (element_count,))
     part_size = int((element_count + num_parts - 1) / num_parts)
 
     part = 1
