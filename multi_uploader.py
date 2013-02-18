@@ -140,7 +140,7 @@ while listNum >= 0:
         os.system("python3 split.py " + newFile + " " + str(splitNumber))
         os.rename(newFile, newFile + ".old")
 	
-        for splits in os.listdir("."): #Regenerate list of osc files with newly generated splits
+        for splits in os.listdir(rootLoc + "/conversions"): #Regenerate list of osc files with newly generated splits
             if files.endswith(".osc"):
                 splits.append(files) #Store files in list
         listNum = len(splits) #returns number of osm files
@@ -154,7 +154,7 @@ while listNum >= 0:
 
 splitList = list()
 
-for files in os.listdir("."): #Regenerate list of osc files with newly generated splits
+for files in os.listdir(rootLoc + "/splits"): #Regenerate list of osc files with newly generated splits
     if files.endswith(".osc"):
         splitList.append(files) #Store files in list
 listNum = len(splitList) #returns number of osm files
