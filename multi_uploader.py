@@ -84,9 +84,8 @@ if comment == "":
 	print "Enter Changeset Comment"
 	comment = raw_input(":")
 
-if fileLoc <> "" and fileLoc <> ".":
+if fileLoc <> ".":
 	fileLoc = rootLoc + fileLoc
-	os.chdir(fileLoc) #change to user specified directory
 else:
 	fileLoc = rootLoc
 
@@ -102,26 +101,26 @@ if check != "yes":
 
 print "Go get a beer. I've got this now!"
 
-if not os.path.exists(rootLoc + "/conversions"):
+#Creates various directories used during the upload
+if not os.path.exists(rootLoc + "/conversions"): #stores osc files
     os.makedirs(rootLoc + "/conversions")
-    
-if not os.path.exists(rootLoc + "/splits"):
+if not os.path.exists(rootLoc + "/splits"): #stores split files
     os.makedirs(rootLoc + "/splits")
-
-if not os.path.exists(rootLoc + "/completed"):
+if not os.path.exists(rootLoc + "/completed"): #stores sucessfully uploaded splits
     os.makedirs(rootLoc + "/completed") 
 
 osmList = list() #stores list of osm files to be split
+splits = list()
 
-for files in os.listdir("."): #Gets a list of osm files
+for files in os.listdir(fileLoc): #Gets a list of osm files
     if files.endswith(".osm"):
         osmList.append(files) #Store files in list
 listNum = len(osmList) #returns number of osm files
 listNum = listNum - 1 #Fixes for 0th element
 
 while listNum >= 0:
-    print "---Converting: " + osmList[listNum] + "---"
-    os.system("python3 osm2change.py " + osmList[listNum])
+    print "---Converting: " + fileLoc + "/" + osmList[listNum] + "---"
+    os.system("python3 osm2change.py " + fileLoc + "/" + osmList[listNum])
     newFile = osmList[listNum].replace(".osm", ".osc")
     print "   Moving to /conversions"
     os.rename(fileLoc + "/" + newFile, rootLoc + "/conversions/" + newFile)
@@ -131,13 +130,25 @@ while listNum >= 0:
     os.system("python smarter-sort.py " + newFile)
     os.rename(newFile, newFile + ".old")
     newFile = newFile.replace(".osc","-sorted.osc")
+    
+    print newFile
 
     fileSize = int(os.path.getsize(newFile) * 0.000976562) #gets size in B, converts to kB, rounds to int.
-    splitNumber = fileSize / 200 #Will split into 200kB bits - NEEDS DISCUSSION
+    splitNumber = fileSize / 200 #Will split into 200kB bits
     if splitNumber > 1:
         print "---Splitting: " + newFile + " into " + str(splitNumber) + " parts---"
         os.system("python3 split.py " + newFile + " " + str(splitNumber))
         os.rename(newFile, newFile + ".old")
+	
+        for splits in os.listdir("."): #Regenerate list of osc files with newly generated splits
+            if files.endswith(".osc"):
+                splits.append(files) #Store files in list
+        listNum = len(splits) #returns number of osm files
+        listNum = listNum - 1 #Fixes for 0th element
+
+        while listNum >= 0:
+            os.rename(rootLoc + "/conversions/" + splits[listNum] , rootLoc + "/splits/" + splits[listNum])
+            listNum -= 1
 	
     listNum = listNum - 1
 
@@ -157,5 +168,5 @@ while listNum >= 0:
 	
 	print "---Uploading: " + splitList[listNum] + "---"
         # os.system("python3 upload.py -u " + username + " -p " + password + " -m \"" + comment + "\" -t -c yes " + splitList[listNum] )
-        listNum = listNum - 1 
+        listNum -= 1
         
