@@ -127,7 +127,7 @@ while listNum >= 0:
     newFile = rootLoc + "/conversions/" + newFile
 
     print "---Sorting: " + newFile + "---"
-    #os.system("python smarter-sort.py " + newFile)
+    os.system("python smarter-sort.py " + newFile)
     os.rename(newFile, newFile + ".old")
     newFile = newFile.replace(".osc","-sorted.osc")
 
@@ -138,19 +138,17 @@ while listNum >= 0:
         os.system("python3 split.py " + newFile + " " + str(splitNumber))
         os.rename(newFile, newFile + ".old")
 	
-        for splits in os.listdir(rootLoc + "/conversions"): #Regenerate list of osc files with newly generated splits
-            if files.endswith(".osc"):
-                splits.append(files) #Store files in list
-        listNum = len(splits) #returns number of osm files
-        listNum = listNum - 1 #Fixes for 0th element
+    for splits in os.listdir(rootLoc + "/conversions"): #Regenerate list of osc files with newly generated splits
+        if files.endswith(".osc"):
+            splits.append(files) #Store files in list
+    listNumber = len(splits) #returns number of osm files
+    listNumber -= 1 #Fixes for 0th element
 
-        print splits
-
-        while listNum >= 0:
-            os.rename(rootLoc + "/conversions/" + splits[listNum] , rootLoc + "/splits/" + splits[listNum])
-            listNum -= 1
-	
-    listNum = listNum - 1
+    while listNumber >= 0:
+        os.rename(rootLoc + "/conversions/" + splits[listNumber] , rootLoc + "/splits/" + splits[listNumber])
+        listNumber -= 1
+	        
+    listNum -= 1
 
 splitList = list()
 
@@ -158,7 +156,7 @@ for files in os.listdir(rootLoc + "/splits"): #Regenerate list of osc files with
     if files.endswith(".osc"):
         splitList.append(files) #Store files in list
 listNum = len(splitList) #returns number of osm files
-listNum = listNum - 1 #Fixes for 0th element
+listNum -= 1 #Fixes for 0th element
 
 while listNum >= 0:
 
