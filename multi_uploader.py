@@ -102,6 +102,15 @@ if check != "yes":
 
 print "Go get a beer. I've got this now!"
 
+if not os.path.exists(rootLoc + "/conversions"):
+    os.makedirs(rootLoc + "/conversions")
+    
+if not os.path.exists(rootLoc + "/splits"):
+    os.makedirs(rootLoc + "/splits")
+
+if not os.path.exists(rootLoc + "/completed"):
+    os.makedirs(rootLoc + "/completed") 
+
 osmList = list() #stores list of osm files to be split
 
 for files in os.listdir("."): #Gets a list of osm files
@@ -114,6 +123,9 @@ while listNum >= 0:
     print "---Converting: " + osmList[listNum] + "---"
     os.system("python3 osm2change.py " + osmList[listNum])
     newFile = osmList[listNum].replace(".osm", ".osc")
+    print "   Moving to /conversions"
+    os.rename(fileLoc + "/" + newFile, rootLoc + "/conversions/" + newFile)
+    newFile = rootLoc + "/conversions/" + newFile
 
     print "---Sorting: " + newFile + "---"
     os.system("python smarter-sort.py " + newFile)
