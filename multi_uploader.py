@@ -138,7 +138,7 @@ while listNum >= 0:
         os.system("python3 split.py " + newFile + " " + str(splitNumber))
         os.rename(newFile, newFile + ".old")
 	
-    for splits in os.listdir(rootLoc + "/conversions"): #Regenerate list of osc files with newly generated splits
+    for files in os.listdir(rootLoc + "/conversions"): #Regenerate list of osc files with newly generated splits
         if files.endswith(".osc"):
             splits.append(files) #Store files in list
     listNumber = len(splits) #returns number of osm files
@@ -152,13 +152,15 @@ while listNum >= 0:
 
 splitList = list()
 
-for files in os.listdir(rootLoc + "/splits"): #Regenerate list of osc files with newly generated splits
+for files in os.listdir(rootLoc + "/splits"): #Gets a list of osm files
     if files.endswith(".osc"):
         splitList.append(files) #Store files in list
 listNum = len(splitList) #returns number of osm files
-listNum -= 1 #Fixes for 0th element
+listNum = listNum - 1 #Fixes for 0th element
 
 while listNum >= 0:
+
+	#os.system("python diffpatch.py")
 
 	#TODO Add diff code here
 	#Since I now have the basic split support this must be added before ANY uploads can take place
