@@ -157,16 +157,28 @@ for files in os.listdir(rootLoc + "/splits"): #Gets a list of osm files
         splitList.append(files) #Store files in list
 listNum = len(splitList) #returns number of osm files
 listNum = listNum - 1 #Fixes for 0th element
+fileNum = listNum
+
+diffList = list()
+
+
 
 while listNum >= 0:
-
-	#os.system("python diffpatch.py")
-
-	#TODO Add diff code here
-	#Since I now have the basic split support this must be added before ANY uploads can take place
-	#otherwise they will break. More info on wiki
 	
-	print "---Uploading: " + splitList[listNum] + "---"
-        # os.system("python3 upload.py -u " + username + " -p " + password + " -m \"" + comment + "\" -t -c yes " + splitList[listNum] )
-        listNum -= 1
+    print "---Uploading: " + rootLoc + "/splits/" + splitList[listNum] + "---"
+    os.system("python3 upload.py -u " + username + " -p " + password + " -m \"" + comment + "\" -t -c yes " + rootLoc + "/splits/" + splitList[listNum] )
+    listNum -= 1
+    
+    del diffList[:]
+    for files in os.listdir(rootLoc + "/splits"): #Gets a list of osm files
+        if files.endswith(".diff.xml"):
+            diffList.append(files) #Store files in list
+    diffNum = len(diffList) #returns number of osm files
+    diffNum = diffNum - 1 #Fixes for 0th element
+    
+    while diffNum >= 0:
+        while fileNum >=0:
+            os.system("python diffpatch.py " + diffList[diffNum] + " " + splitList[fileNum])
+            fileNum -= 1
+        diffNum -= 1
         
