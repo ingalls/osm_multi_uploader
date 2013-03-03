@@ -160,7 +160,10 @@ class OSM_API(object):
         tree = ElementTree.ElementTree(root)
         element = ElementTree.SubElement(root, "changeset")
         ElementTree.SubElement(element, "tag", {"k": "created_by", "v": created_by})
-        ElementTree.SubElement(element, "tag", {"k": "comment", "v": comment})
+        
+        if ( comment ) :
+            ElementTree.SubElement(element, "tag", {"k": "comment", "v": comment})
+
         if ( source ) :
             ElementTree.SubElement(element, "tag", {"k": "source", "v": source})
 
@@ -183,11 +186,14 @@ class OSM_API(object):
             raise RuntimeError("Changeset not opened")
         self.progress_msg = "Now I'm sending changes"
         self.msg("")
+
+        # add in changeset tag to all of the elements.
         for operation in change:
             if operation.tag not in ("create", "modify", "delete"):
                 continue
             for element in operation:
                 element.attrib["changeset"] = str(self.changeset)
+
         body = ElementTree.tostring(change, "utf-8")
         reply = self._run_request("POST", "/api/0.6/changeset/%i/upload"
                                                 % (self.changeset,), body, 1)
@@ -229,6 +235,7 @@ try:
     if ( not param.server ) :
         parser.print_help()
         print("\n\nerror: --server flag is required.")
+        sys.exit(1)
       
     if ( param.server == 'test') :
         param.server = 'http://api06.dev.openstreetmap.org'
@@ -248,18 +255,16 @@ try:
         password = input("OSM password: ")
     if not password:
         sys.exit(1)
-
-    if not param.comment :
-        parser.print_help()
-        print("\n\nerror: --comment flag is required.")
     
     api = OSM_API(param.server,login, password)
 
     changes = []
     for filename in filenames:
+
         if not os.path.exists(filename):
             sys.stderr.write("File %r doesn't exist!\n" % (filename,))
             sys.exit(1)
+
         if not param.start :
             # Should still check validity, but let's save time
 
@@ -278,7 +283,6 @@ try:
             sys.stderr.write("Diff file %r already exists, delete it " \
                     "if you're sure you want to re-upload\n" % (diff_fn,))
             sys.exit(1)
-
         
         if filename.endswith(".osc"):
             comment_fn = filename[:-4] + ".comment"
@@ -357,7 +361,7 @@ try:
                     sys.stderr.write("\nRetrying upload without element " +
                             id + "\n")
                     continue
-                if 'try' in param and e.args[0] == 412 and \
+                if param.skip and e.args[0] == 412 and \
                         errstr.find(" requires ") > -1:
                     idlist = errstr.split("id in (")[1].split(")")[0].split(",")
                     found = 0
