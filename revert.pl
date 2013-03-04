@@ -1,6 +1,4 @@
-
-<!-- saved from url=(0064)http://svn.openstreetmap.org/applications/utils/revert/revert.pl -->
-<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></head><body><pre style="word-wrap: break-word; white-space: pre-wrap;">#!/usr/bin/perl
+#!/usr/bin/perl
 
 # Adapter script for Revert.pm module
 # exports Revert.pm functionality for command line use.
@@ -68,4 +66,3 @@ if (defined($current_cs))
     }
 }
 
-</pre></body><style type="text/css"></style></html>

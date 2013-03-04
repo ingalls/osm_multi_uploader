@@ -30,6 +30,7 @@ import sys
 import traceback
 import base64
 import codecs
+import optparse
 
 import http.client as httplib
 import xml.etree.cElementTree as ElementTree
@@ -40,8 +41,7 @@ class HTTPError(Exception):
 
 class OSM_API(object):
     url = 'http://api06.dev.openstreetmap.org/'
-#    url = 'http://api.openstreetmap.org/'
-    def __init__(self, username = None, password = None):
+    def __init__(self, url, username = None, password = None):
         if username and password:
             self.username = username
             self.password = password
@@ -50,6 +50,7 @@ class OSM_API(object):
             self.password = ""
         self.changeset = None
         self.progress_msg = None
+        self.url = url
 
     def __del__(self):
         #if self.changeset is not None:
@@ -150,7 +151,7 @@ class OSM_API(object):
             conn.close()
         return response_body
 
-    def create_changeset(self, created_by, comment):
+    def create_changeset(self, created_by, comment,source):
         if self.changeset is not None:
             raise RuntimeError("Changeset already opened")
         self.progress_msg = "I'm creating the changeset"
@@ -159,14 +160,20 @@ class OSM_API(object):
         tree = ElementTree.ElementTree(root)
         element = ElementTree.SubElement(root, "changeset")
         ElementTree.SubElement(element, "tag", {"k": "created_by", "v": created_by})
-        ElementTree.SubElement(element, "tag", {"k": "comment", "v": comment})
+        
+        if ( comment ) :
+            ElementTree.SubElement(element, "tag", {"k": "comment", "v": comment})
+
+        if ( source ) :
+            ElementTree.SubElement(element, "tag", {"k": "source", "v": source})
+
 #       ElementTree.SubElement(element, "tag", {"k": "import", "v": "yes"})
-#       ElementTree.SubElement(element, "tag", {"k": "source", "v": "BDLL25, EGRN, Instituto Geográfico Nacional"})
 #       ElementTree.SubElement(element, "tag", {"k": "merged", "v": "no - possible duplicates (will be resolved in following changesets)"})
 #       ElementTree.SubElement(element, "tag", {"k": "reviewed", "v": "yes"})
 #       ElementTree.SubElement(element, "tag", {"k": "revert", "v": "yes"})
 #       ElementTree.SubElement(element, "tag", {"k": "bot", "v": "yes"})
 #       ElementTree.SubElement(element, "tag", {"k": "url", "v": "http://www.openstreetmap.org/user/nmixter/diary/8218"})
+
         body = ElementTree.tostring(root, "utf-8")
         reply = self._run_request("PUT", "/api/0.6/changeset/create", body)
         changeset = int(reply.strip())
@@ -179,11 +186,14 @@ class OSM_API(object):
             raise RuntimeError("Changeset not opened")
         self.progress_msg = "Now I'm sending changes"
         self.msg("")
+
+        # add in changeset tag to all of the elements.
         for operation in change:
             if operation.tag not in ("create", "modify", "delete"):
                 continue
             for element in operation:
                 element.attrib["changeset"] = str(self.changeset)
+
         body = ElementTree.tostring(change, "utf-8")
         reply = self._run_request("POST", "/api/0.6/changeset/%i/upload"
                                                 % (self.changeset,), body, 1)
@@ -204,70 +214,58 @@ class OSM_API(object):
 
 try:
     this_dir = os.path.dirname(__file__)
+    version=1
+
     try:
         version = int(subprocess.Popen(["svnversion", this_dir], stdout = subprocess.PIPE).communicate()[0].strip())
     except:
         version = 1
-    if len(sys.argv) < 2:
-        sys.stderr.write("Synopsis:\n")
-        sys.stderr.write("    %s <file-name.osc> [<file-name.osc>...]\n" % (sys.argv[0],))
+
+    parser = optparse.OptionParser(description='Upload Open Street Map OSC files.',usage='upload.py [options] uploadfile1.osc [uploadfile2.osc] ...')
+    parser.add_option('-u','--user',help='OSM Username (not email)',dest='user')
+    parser.add_option('-p','--password',help='OSM password',dest='password')
+    parser.add_option('-m','--comment',help='Sets the changeset comment tag value, required.',dest='comment')
+    parser.add_option('--source',help='Sets the changeset source tag value',dest='source')
+    parser.add_option('-s','--changeset',help='Changeset ID',dest='changeset',type='int')
+    parser.add_option('-n','--start',help='Create a new Changeset and exit',action='store_const',const=1,dest='start',default=0)
+    parser.add_option('-t','--skip',help='Skip uploading any elements that have an error.',action='store_const',const=1,dest='skip',default=0)
+    parser.add_option('--server',help='URL for upload server (url,test,live), required.')
+    (param,filenames) = parser.parse_args()
+
+    if ( not param.server ) :
+        parser.print_help()
+        print("\n\nerror: --server flag is required.")
         sys.exit(1)
-
-    filenames = []
-    param = {}
-    num = 0
-    skip = 0
-    for arg in sys.argv[1:]:
-        num += 1
-        if skip:
-            skip -= 1
-            continue
-
-        if arg == "-u":
-            param['user'] = sys.argv[num + 1]
-            skip = 1
-        elif arg == "-p":
-            param['pass'] = sys.argv[num + 1]
-            skip = 1
-        elif arg == "-c":
-            param['confirm'] = sys.argv[num + 1]
-            skip = 1
-        elif arg == "-m":
-            param['comment'] = sys.argv[num + 1]
-            skip = 1
-        elif arg == "-s":
-            param['changeset'] = sys.argv[num + 1]
-            skip = 1
-        elif arg == "-n":
-            param['start'] = 1
-            skip = 0
-        elif arg == "-t":
-            param['try'] = 1
-            skip = 0
-        else:
-            filenames.append(arg)
-
-    if 'user' in param:
-        login = param['user']
+      
+    if ( param.server == 'test') :
+        param.server = 'http://api06.dev.openstreetmap.org'
+    elif (param.server == 'live') :
+        param.server = 'http://api.openstreetmap.org'
+        
+    if ( param.user) :
+        login = param.user
     else:
         login = input("OSM login: ")
     if not login:
         sys.exit(1)
-    if 'pass' in param:
-        password = param['pass']
+
+    if (param.password) :
+        password = param.password
     else:
         password = input("OSM password: ")
     if not password:
         sys.exit(1)
-
-    api = OSM_API(login, password)
+    
+    api = OSM_API(param.server,login, password)
 
     changes = []
     for filename in filenames:
+
         if not os.path.exists(filename):
             sys.stderr.write("File %r doesn't exist!\n" % (filename,))
             sys.exit(1)
-        if 'start' not in param:
+
+        if not param.start :
             # Should still check validity, but let's save time
 
             tree = ElementTree.parse(filename)
@@ -285,7 +283,7 @@ try:
             sys.stderr.write("Diff file %r already exists, delete it " \
                     "if you're sure you want to re-upload\n" % (diff_fn,))
             sys.exit(1)
-
+        
         if filename.endswith(".osc"):
             comment_fn = filename[:-4] + ".comment"
         else:
@@ -295,36 +293,16 @@ try:
             comment = comment_file.read().strip()
             comment_file.close()
         except IOError:
-            comment = None
-        if not comment:
-            if 'comment' in param:
-                comment = param['comment']
-            else:
-                comment = input("Your comment to %r: " % (filename,))
-            if not comment:
-                sys.exit(1)
-            #try:
-            #    comment = comment.decode(locale.getlocale()[1])
-            #except TypeError:
-            #    comment = comment.decode("UTF-8")
+            comment = param.comment
 
         sys.stderr.write("     File: %r\n" % (filename,))
         sys.stderr.write("  Comment: %s\n" % (comment,))
 
-        if 'confirm' in param:
-            sure = param['confirm']
+        if param.changeset :
+            api.changeset = int(param.changeset)
         else:
-            sys.stderr.write("Are you sure you want to send these changes?")
-            sure = input()
-        if sure.lower() not in ("y", "yes"):
-            sys.stderr.write("Skipping...\n\n")
-            continue
-        sys.stderr.write("\n")
-        if 'changeset' in param:
-            api.changeset = int(param['changeset'])
-        else:
-            api.create_changeset("upload.py v. %s" % (version,), comment)
-            if 'start' in param:
+            api.create_changeset("upload.py v. %s" % (version,), comment, param.source)
+            if param.start :
                 print(api.changeset)
                 sys.exit(0)
         while 1:
@@ -341,7 +319,7 @@ try:
                     # it and nothing gets committed
                     os.unlink(diff_fn)
                 errstr = e.args[2].decode("utf8")
-                if 'try' in param and e.args[0] == 409 and \
+                if param.skip and e.args[0] == 409 and \
                         errstr.find("Version mismatch") > -1:
                     id = errstr.split(" ")[-1]
                     found = 0
@@ -356,13 +334,13 @@ try:
                             oper.remove(elem)
                     if not found:
                         sys.stderr.write("\nElement " + id + " not found\n")
-                        if 'changeset' not in param:
+                        if not param.changeset:
                             api.close_changeset()
                         sys.exit(1)
                     sys.stderr.write("\nRetrying upload without element " +
                             id + "\n")
                     continue
-                if 'try' in param and e.args[0] == 400 and \
+                if param.skip and e.args[0] == 400 and \
                         errstr.find("Placeholder Way not found") > -1:
                     id = errstr.replace(".", "").split(" ")[-1]
                     found = 0
@@ -377,13 +355,13 @@ try:
                             oper.remove(elem)
                     if not found:
                         sys.stderr.write("\nElement " + id + " not found\n")
-                        if 'changeset' not in param:
+                        if not param.changeset:
                             api.close_changeset()
                         sys.exit(1)
                     sys.stderr.write("\nRetrying upload without element " +
                             id + "\n")
                     continue
-                if 'try' in param and e.args[0] == 412 and \
+                if param.skip and e.args[0] == 412 and \
                         errstr.find(" requires ") > -1:
                     idlist = errstr.split("id in (")[1].split(")")[0].split(",")
                     found = 0
@@ -405,17 +383,17 @@ try:
                     if not found:
                         sys.stderr.write("\nElement " + str(idlist) +
                                 " not found\n")
-                        if 'changeset' not in param:
+                        if not param.changeset:
                             api.close_changeset()
                         sys.exit(1)
                     sys.stderr.write("\nRetrying upload without elements " +
                             str(delids) + "\n")
                     continue
-                if 'changeset' not in param:
+                if not param.changeset:
                    api.close_changeset()
                 sys.exit(1)
             break
-        if 'changeset' not in param:
+        if not param.changeset:
             api.close_changeset()
 except HTTPError as err:
     sys.stderr.write(err.args[1])
