@@ -263,6 +263,8 @@ try:
 
         if not os.path.exists(filename):
             sys.stderr.write("File %r doesn't exist!\n" % (filename,))
+            f = open('logFile','a')
+            f.write('NoFileFound')
             sys.exit(1)
 
         if not param.start :
@@ -282,6 +284,8 @@ try:
         if os.path.exists(diff_fn):
             sys.stderr.write("Diff file %r already exists, delete it " \
                     "if you're sure you want to re-upload\n" % (diff_fn,))
+            f = open('logFile','a')
+            f.write('DiffExists')
             sys.exit(1)
         
         if filename.endswith(".osc"):
@@ -397,8 +401,12 @@ try:
             api.close_changeset()
 except HTTPError as err:
     sys.stderr.write(err.args[1])
+    f = open('logFile','a')
+    f.write('HTTPError')
     sys.exit(1)
 except Exception as err:
     sys.stderr.write(repr(err) + "\n")
     traceback.print_exc(file=sys.stderr)
+    f = open('logFile','a')
+    f.write('GenericError')
     sys.exit(1)
