@@ -37,36 +37,46 @@ username = ""
 password = ""
 comment = ""
 num = 0
+liveServer = False
 
-if len(sys.argv) == 0:
+if len(sys.argv) == 1:
 	print "OSM MultiUploader"
 	print "-----"
 	print "-u <username>"
 	print "-p <password>"
 	print "-c <changeset comment>"
-	print "-d <upload> "
+	print "-d <upload directory> "
 	print "-----"
 	print "-m (Prompt for values)"
+	print "-l (Upload to live server)"
+	print "   Defaults to test server"
 	sys.exit(1)
 	
 print "OSM Multi-Uploader " + version
 
-#if sys.argv !contains "-m"
-while num < len(sys.argv)-2:
-	num += 1
-	arg = sys.argv[num]
-	if arg == "-u":
+allArgs = str(sys.argv)
+print allArgs
+
+if allArgs.find("-m") == -1:
+	while num < len(sys.argv)-2:
 		num += 1
-		username = sys.argv[num]
-	elif arg == "-p":
-		num += 1
-		password =sys.argv[num]
-	elif arg == "-d":
-		num += 1
-		fileLoc = sys.argv[num]
-	elif arg == "-c":
-		num += 1
-		comment = sys.argv[num]
+		arg = sys.argv[num]
+		if arg == "-u":
+			num += 1
+			username = sys.argv[num]
+		elif arg == "-p":
+			num += 1
+			password =sys.argv[num]
+		elif arg == "-d":
+			num += 1
+			fileLoc = sys.argv[num]
+		elif arg == "-c":
+			num += 1
+			comment = sys.argv[num]
+		elif arg == "-l":
+			num += 1
+			liveServer = True
+			
 
 if fileLoc == "":
 	print "Enter Directory (Press enter for current)"
@@ -93,6 +103,12 @@ print "\n\n\n"
 print "Username: " + username
 print "Password: " + password
 print "Comment: " + comment
+
+if liveServer == True:
+    print "Server: LIVE"
+else:
+    print "Server: TEST"
+
 
 print "\nAre you sure you wish to continue?"
 check = raw_input("type 'yes' to continue \n:")
@@ -164,9 +180,15 @@ diffList = list()
 
 
 while listNum >= 0:
-	
+
+    if liveServer == True:
+        server = "--server live"
+    elif liveServer == False:
+        server = "--server test"
+    
+
     print "---Uploading: " + rootLoc + "/splits/" + splitList[listNum] + "---"
-    os.system("python3 upload.py -u " + username + " -p " + password + " -m \"" + comment + "\" -t -c yes " + rootLoc + "/splits/" + splitList[listNum] )
+    os.system("python3 upload.py " + server + " -u " + username + " -p " + password + " -m \"" + comment + "\" -t " + rootLoc + "/splits/" + splitList[listNum] )
     listNum -= 1
     
     del diffList[:]
