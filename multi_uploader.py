@@ -175,10 +175,6 @@ listNum = len(splitList) #returns number of osm files
 listNum = listNum - 1 #Fixes for 0th element
 fileNum = listNum
 
-diffList = list()
-
-
-
 while listNum >= 0:
 
     if liveServer == True:
@@ -190,36 +186,7 @@ while listNum >= 0:
     print "---Uploading: " + rootLoc + "/splits/" + splitList[listNum] + "---"
     os.system("python3 upload.py " + server + " -u " + username + " -p " + password + " -m \"" + comment + "\" -t " + rootLoc + "/splits/" + splitList[listNum] )
     
+    #Error handling code here.
     os.rename(rootLoc + "/splits/" + splitList[listNum], rootLoc + "/completed/" + splitList[listNum])
     
     listNum -= 1
-    
-    
-    #Regenerates Diff List
-    del diffList[:]
-    for files in os.listdir(rootLoc + "/splits"): #Gets a list of diff files
-        if files.endswith(".diff.xml"):
-            diffList.append(files) #Store files in list
-    diffNum = len(diffList) #returns number of diff files
-    diffNum = diffNum - 1 #Fixes for 0th element
-    
-    #Regenerates Split List
-    del splitList[:]
-    for files in os.listdir(rootLoc + "/splits"): #Gets a list of split files
-        if files.endswith(".osc"):
-            splitList.append(files) #Store files in list
-    fileNum = len(splitList) #returns number of splits
-    fileNum = fileNum - 1 #Fixes for 0th element
-    
-    #test print statement (TODO Remove when complete)
-    print "Diff:" + str(diffList)
-    print "Split" + str(splitList)
-    
-    print "---Applying Diff File---"
-    while diffNum >= 0:
-        while fileNum >=0:
-            print "   Applying " + diffList[diffNum] + " to " + splitList[fileNum]
-            os.system("python diffpatch.py " + rootLoc + "/splits/" + diffList[diffNum] + " " + rootLoc + "/splits" + splitList[fileNum])
-            fileNum -= 1
-        diffNum -= 1
-        
