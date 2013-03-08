@@ -154,7 +154,7 @@ class OSM_API(object):
     def create_changeset(self, created_by, comment,source):
         if self.changeset is not None:
             raise RuntimeError("Changeset already opened")
-        self.progress_msg = "I'm creating the changeset"
+        self.progress_msg = "   I'm creating the changeset"
         self.msg("")
         root = ElementTree.Element("osm")
         tree = ElementTree.ElementTree(root)
@@ -184,7 +184,7 @@ class OSM_API(object):
     def upload(self, change):
         if self.changeset is None:
             raise RuntimeError("Changeset not opened")
-        self.progress_msg = "Now I'm sending changes"
+        self.progress_msg = "   Now I'm sending changes"
         self.msg("")
 
         # add in changeset tag to all of the elements.
@@ -204,7 +204,7 @@ class OSM_API(object):
     def close_changeset(self):
         if self.changeset is None:
             raise RuntimeError("Changeset not opened")
-        self.progress_msg = "Closing"
+        self.progress_msg = "   Closing"
         self.msg("")
         reply = self._run_request("PUT", "/api/0.6/changeset/%i/close"
                                                     % (self.changeset,))
@@ -299,8 +299,8 @@ try:
         except IOError:
             comment = param.comment
 
-        sys.stderr.write("     File: %r\n" % (filename,))
-        sys.stderr.write("  Comment: %s\n" % (comment,))
+        sys.stderr.write("   File: %r\n" % (filename,))
+        sys.stderr.write("   Comment: %s\n" % (comment,))
 
         if param.changeset :
             api.changeset = int(param.changeset)
