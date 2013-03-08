@@ -218,6 +218,7 @@ while listNum >= 0:
     print "---Applying Diff File---"
     while diffNum >= 0:
         while fileNum >=0:
+            print "   Applying " + diffList[diffNum] + " to " + splitList[fileNum]
             os.system("python diffpatch.py " + rootLoc + "/splits/" + diffList[diffNum] + " " + rootLoc + "/splits" + splitList[fileNum])
             fileNum -= 1
         diffNum -= 1
