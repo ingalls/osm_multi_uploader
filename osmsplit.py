@@ -57,7 +57,7 @@ def assignChunk( oscGraph, key, chunkNumber ) :
     for child in oscGraph[key]['children'] :
         assignCount += assignChunk( oscGraph,child,chunkNumber)
     return assignCount
-        
+
 def splitOSC( filename, outputDir, maxElements) :
     tree = ElementTree.parse(filename)
     root = tree.getroot()

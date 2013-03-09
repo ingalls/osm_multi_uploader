@@ -141,28 +141,16 @@ while listNum >= 0:
     print "   Moving to /conversions"
     os.rename(fileLoc + "/" + newFile, rootLoc + "/conversions/" + newFile)
     newFile = rootLoc + "/conversions/" + newFile
-
-    print "---Sorting: " + newFile + "---"
-    os.system("python smarter-sort.py " + newFile)
+    
+    print "---Splitting: " + newFile
+    os.system("python osmsplit.py --outputDir " + rootLoc + "/splits --maxElements 3000 " + newFile)
     os.rename(newFile, newFile + ".old")
-    newFile = newFile.replace(".osc","-sorted.osc")
-
-    fileSize = int(os.path.getsize(newFile) * 0.000976562) #gets size in B, converts to kB, rounds to int.
-    splitNumber = fileSize / 200 #Will split into 200kB bits
-    if splitNumber > 1:
-        print "---Splitting: " + newFile + " into " + str(splitNumber) + " parts---"
-        os.system("python3 split.py " + newFile + " " + str(splitNumber))
-        os.rename(newFile, newFile + ".old")
 	
     for files in os.listdir(rootLoc + "/conversions"): #Regenerate list of osc files with newly generated splits
         if files.endswith(".osc"):
             splits.append(files) #Store files in list
     listNumber = len(splits) #returns number of osm files
     listNumber -= 1 #Fixes for 0th element
-
-    while listNumber >= 0:
-        os.rename(rootLoc + "/conversions/" + splits[listNumber] , rootLoc + "/splits/" + splits[listNumber])
-        listNumber -= 1
 	        
     listNum -= 1
 
