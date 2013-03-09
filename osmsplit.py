@@ -35,6 +35,13 @@ import xml.etree.cElementTree as ElementTree
 #sys.stdout = codecs.getwriter(encoding)(sys.stdout, errors = "replace")
 #sys.stderr = codecs.getwriter(encoding)(sys.stderr, errors = "replace")
 
+def chunkSortByLon( chunk ) :
+    lon = 0
+    for member in chunk['members'] :
+	if ( member['tag'] == 'node' ) :
+	   lon = member['element'].attrib.get("lon") 
+    return lon
+
 def writeChunk( oscGraph,part_op,chunk,operation,tag) :
     for node in chunk['members'] : 
         if ( node['tag'] == tag and
@@ -108,28 +115,29 @@ def splitOSC( filename, outputDir, maxElements) :
     # chunk so we know how to split them. A chunk is a set of ways, nodes, relations
     # that point to each other. These "chunks" can't be broken across changesets
     # files without creating dependencies between uploads.
-    chunks= {}
+    chunks = []
     nextChunk = 0;
     
     for key in oscGraph : 
         if ( oscGraph[key]['chunkAssignment'] < 0 ) :
-            chunks[nextChunk] = { 'count': assignChunk( oscGraph,key,nextChunk), 'members' : [] }
+	    numberOfElementsInChunk = assignChunk( oscGraph,key,nextChunk)
+            chunks.append( { 'count': numberOfElementsInChunk, 'members' : [] })
             nextChunk += 1
 
     # build list of elements in each chunk for faster access when writing files out
+    # it is too slow to crawl through the graph for every chuck write
     for key in oscGraph : 
 	chunks[oscGraph[key]['chunkAssignment']]['members'].append(oscGraph[key])
 
-    #print chunks
+    # sort the chucks so the output files are not random located
+    chunks = sorted(chunks, key=chunkSortByLon )
 
     totalElements = 0.0
     for chunk in chunks : 
-        totalElements += chunks[chunk]['count']
+        totalElements += chunk['count']
         
     files = int(math.ceil( totalElements / maxElements))
     averageElementsPerFile = int(math.ceil(totalElements/files))
-
-    #print oscGraph
 
     if ( files == 1 ) :
         shutil.copyfile(filename, outputDir + filename.split("/")[-1]) 
@@ -139,12 +147,12 @@ def splitOSC( filename, outputDir, maxElements) :
 	chunksInFiles = []
 	currentFileSize = maxElements+1
         for chunk in chunks :
-            if ( currentFileSize+chunks[chunk]['count'] > maxElements) :
+            if ( currentFileSize+chunk['count'] > maxElements) :
 		chunksInFiles.append([])
                 currentFileSize = 0
 	    
             chunksInFiles[-1].append( chunk)
-	    currentFileSize += chunks[chunk]['count']
+	    currentFileSize += chunk['count']
 
         # get operation tags, need them handy for file writing.
         oscOperations = {}
@@ -164,21 +172,21 @@ def splitOSC( filename, outputDir, maxElements) :
 
             part_op = ElementTree.SubElement(part_root, oscOperations['create'].tag)
 	    for chunk in chunksInFiles[fileIndex] :
-		writeChunk( oscGraph,part_op,chunks[chunk],'create','node')
-            	writeChunk( oscGraph,part_op,chunks[chunk],'create','way')
-            	writeChunk( oscGraph,part_op,chunks[chunk],'create','relation')
+		writeChunk( oscGraph,part_op,chunk,'create','node')
+            	writeChunk( oscGraph,part_op,chunk,'create','way')
+            	writeChunk( oscGraph,part_op,chunk,'create','relation')
 
             part_op = ElementTree.SubElement(part_root, oscOperations['modify'].tag)
 	    for chunk in chunksInFiles[fileIndex] :
-		writeChunk( oscGraph,part_op,chunks[chunk],'modify','node')
-            	writeChunk( oscGraph,part_op,chunks[chunk],'modify','way')
-            	writeChunk( oscGraph,part_op,chunks[chunk],'modify','relation')
+		writeChunk( oscGraph,part_op,chunk,'modify','node')
+            	writeChunk( oscGraph,part_op,chunk,'modify','way')
+            	writeChunk( oscGraph,part_op,chunk,'modify','relation')
 
             part_op = ElementTree.SubElement(part_root, oscOperations['delete'].tag)
 	    for chunk in chunksInFiles[fileIndex] :
-		writeChunk( oscGraph,part_op,chunks[chunk],'delete','relation')
-            	writeChunk( oscGraph,part_op,chunks[chunk],'delete','way')
-            	writeChunk( oscGraph,part_op,chunks[chunk],'delete','node')
+		writeChunk( oscGraph,part_op,chunk,'delete','relation')
+            	writeChunk( oscGraph,part_op,chunk,'delete','way')
+            	writeChunk( oscGraph,part_op,chunk,'delete','node')
 
             part_tree.write(outputFilename, "utf-8")
 
