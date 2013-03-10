@@ -173,6 +173,13 @@ while listNum >= 0:
 
     print "---Uploading: " + rootLoc + "/splits/" + splitList[listNum] + "---"
     os.system("python3 upload.py " + server + " -u " + username + " -p " + password + " -m \"" + comment + "\" -t " + rootLoc + "/splits/" + splitList[listNum] )
+    f = open('logFile', 'r')
+    f.readline()
+    
+    if 
+        print "Damn it! I'm an upload script not a mechanic"
+        print ""
+    
     
     #Error handling code here.
     os.rename(rootLoc + "/splits/" + splitList[listNum], rootLoc + "/completed/" + splitList[listNum])

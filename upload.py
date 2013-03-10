@@ -153,6 +153,8 @@ class OSM_API(object):
 
     def create_changeset(self, created_by, comment,source):
         if self.changeset is not None:
+            f = open('logFile','w')
+            f.write('changeset already opened')
             raise RuntimeError("Changeset already opened")
         self.progress_msg = "   I'm creating the changeset"
         self.msg("")
@@ -180,9 +182,14 @@ class OSM_API(object):
         self.msg("done. Id: %i" % (changeset))
         sys.stderr.write("\n")
         self.changeset = changeset
+       
+        f = open('currentChange','w')
+        f.write(str(changeset))
 
     def upload(self, change):
         if self.changeset is None:
+            f = open('logFile','w')
+            f.write('changeset not opened')
             raise RuntimeError("Changeset not opened")
         self.progress_msg = "   Now I'm sending changes"
         self.msg("")
@@ -199,10 +206,13 @@ class OSM_API(object):
                                                 % (self.changeset,), body, 1)
         self.msg("done.")
         sys.stderr.write("\n")
+        
         return reply
 
     def close_changeset(self):
         if self.changeset is None:
+            f = open('logFile','w')
+            f.write('changeset not opened')
             raise RuntimeError("Changeset not opened")
         self.progress_msg = "   Closing"
         self.msg("")
@@ -263,7 +273,7 @@ try:
 
         if not os.path.exists(filename):
             sys.stderr.write("File %r doesn't exist!\n" % (filename,))
-            f = open('logFile','a')
+            f = open('logFile','w')
             f.write('NoFileFound')
             sys.exit(1)
 
