@@ -173,13 +173,29 @@ while listNum >= 0:
 
     print "---Uploading: " + rootLoc + "/splits/" + splitList[listNum] + "---"
     os.system("python3 upload.py " + server + " -u " + username + " -p " + password + " -m \"" + comment + "\" -t " + rootLoc + "/splits/" + splitList[listNum] )
-    f = open('logFile', 'r')
-    f.readline()
     
-    if 
-        print "Damn it! I'm an upload script not a mechanic"
-        print ""
     
+
+    
+    if os.path.exists(rootLoc + "/logFile") == True:
+        f = open('logFile', 'r')
+        error = f.readline()
+        f.close()
+        if os.path.exists(rootLoc + "/currentChange") == True:
+            f = open("currentChange",'r')
+            changeset = f.readline()
+            f.close()
+        else:
+            changeset = "(Did not open)"
+        print "Damn it! I'm an upload script not a mechanic\n"
+        print "Error: " + error + " while uploading changeset " + changeset
+        print "Clean up after your mess!"
+        print "Use the JOSM reverter plugin to remove the changeset (if any)"
+        print "Then use the -r arg. to resume the upload from where it left off"
+        
+        sys.exit(1)
+    else:
+        print "   Upload Sucessful!"
     
     #Error handling code here.
     os.rename(rootLoc + "/splits/" + splitList[listNum], rootLoc + "/completed/" + splitList[listNum])

@@ -273,8 +273,9 @@ try:
 
         if not os.path.exists(filename):
             sys.stderr.write("File %r doesn't exist!\n" % (filename,))
+            #This error should not occur when using the multi_uploader script
             f = open('logFile','w')
-            f.write('NoFileFound')
+            f.write('No File Found')
             sys.exit(1)
 
         if not param.start :
@@ -411,12 +412,12 @@ try:
             api.close_changeset()
 except HTTPError as err:
     sys.stderr.write(err.args[1])
-    f = open('logFile','a')
-    f.write('HTTPError')
+    f = open('logFile','w')
+    f.write('HTTP Error')
     sys.exit(1)
 except Exception as err:
     sys.stderr.write(repr(err) + "\n")
     traceback.print_exc(file=sys.stderr)
-    f = open('logFile','a')
-    f.write('GenericError')
+    f = open('logFile','w')
+    f.write('Generic Error')
     sys.exit(1)
