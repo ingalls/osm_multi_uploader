@@ -14,26 +14,22 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 """
-Splits an Open Street Map change files (OSC) into self contained change sets.
+Splits an Open Street Map change files (OSC) into smaller OSC files. Useful 
+for making a large OSC file fit into the 50,000 element change set limit
+that Open Street Map servers have.
+
+The OSC file format is documented here. http://wiki.openstreetmap.org/wiki/OsmChange
+This scripts supports v0.3 and v0.6.
 """
 
 import os
 import sys
 import traceback
-import codecs
-import locale
-import subprocess
 import optparse
 import shutil
 import math
 
 import xml.etree.cElementTree as ElementTree
-
-#import locale, codecs
-#locale.setlocale(locale.LC_ALL, "en_US.UTF-8")
-#encoding = locale.getlocale()[1]
-#sys.stdout = codecs.getwriter(encoding)(sys.stdout, errors = "replace")
-#sys.stderr = codecs.getwriter(encoding)(sys.stderr, errors = "replace")
 
 def chunkSortByLon( chunk ) :
     lon = 0
@@ -63,14 +59,13 @@ def assignChunk( oscGraph, key, chunkNumber ) :
     return assignCount
 
 def splitOSC( filename, outputDir, maxElements) :
-    print "   " + filename + " ",
     tree = ElementTree.parse(filename)
     root = tree.getroot()
 
     oscGraph = {}
     if root.tag != "osmChange" or (root.attrib.get("version") != "0.3" and
             root.attrib.get("version") != "0.6"):
-        print >>sys.stderr, u"File %s is not a v0.3 osmChange file!" % (filename,)
+        print >>sys.stderr, u"File %s is not a v0.3 or v0.6 osmChange file!" % (filename,)
         sys.exit(1)
        
     # setup nodes in connectivity graph
@@ -109,8 +104,6 @@ def splitOSC( filename, outputDir, maxElements) :
                         oscGraph[key]['children'].append( childKey)
                         oscGraph[childKey]['parents'].append(key)
 
-            #print element.tag +  + "\n";
-
     # assign chunks to each element, keep track of how many elements are in each
     # chunk so we know how to split them. A chunk is a set of ways, nodes, relations
     # that point to each other. These "chunks" can't be broken across changesets
@@ -144,45 +137,42 @@ def splitOSC( filename, outputDir, maxElements) :
     else :
 	
 	# figure out what chunks go in what files
-	chunksInFiles = []
-	currentFileSize = maxElements+1
+	chunksInFiles = [ [] ]
+	currentFileSize = 0
         for chunk in chunks :
-            if ( currentFileSize+chunk['count'] > maxElements) :
-		chunksInFiles.append([])
+            if ( currentFileSize > 0 and currentFileSize+chunk['count'] > maxElements ) :
+	        chunksInFiles.append([])
                 currentFileSize = 0
 	    
             chunksInFiles[-1].append( chunk)
 	    currentFileSize += chunk['count']
 
-        # get operation tags, need them handy for file writing.
-        oscOperations = {}
-        for operation in root:  
-            oscOperations[operation.tag] = operation
+	    if ( currentFileSize > maxElements) :
+	        print >>sys.stderr, u"File %s: has a set of changes that is larger than the limit." % (filename)
+
 
 	for fileIndex in range( 0,len(chunksInFiles)) :
-
-	    sys.stdout.write(".")
-            sys.stdout.flush()
 
             filename_base = filename[:-4].split("/")[-1];
             outputFilename = "%s%s-part%04i.osc" % (outputDir,filename_base, fileIndex)
 
-            part_root = ElementTree.Element('osmChange', {'version':'0.6'})
+	    # if input file is v0.3, then the output file will be v0.3
+            part_root = ElementTree.Element('osmChange', {'version':root.attrib.get("version")})
             part_tree = ElementTree.ElementTree(part_root)
 
-            part_op = ElementTree.SubElement(part_root, oscOperations['create'].tag)
+            part_op = ElementTree.SubElement(part_root, 'create')
 	    for chunk in chunksInFiles[fileIndex] :
 		writeChunk( oscGraph,part_op,chunk,'create','node')
             	writeChunk( oscGraph,part_op,chunk,'create','way')
             	writeChunk( oscGraph,part_op,chunk,'create','relation')
 
-            part_op = ElementTree.SubElement(part_root, oscOperations['modify'].tag)
+            part_op = ElementTree.SubElement(part_root, 'modify')
 	    for chunk in chunksInFiles[fileIndex] :
 		writeChunk( oscGraph,part_op,chunk,'modify','node')
             	writeChunk( oscGraph,part_op,chunk,'modify','way')
             	writeChunk( oscGraph,part_op,chunk,'modify','relation')
 
-            part_op = ElementTree.SubElement(part_root, oscOperations['delete'].tag)
+            part_op = ElementTree.SubElement(part_root, 'delete')
 	    for chunk in chunksInFiles[fileIndex] :
 		writeChunk( oscGraph,part_op,chunk,'delete','relation')
             	writeChunk( oscGraph,part_op,chunk,'delete','way')
@@ -193,16 +183,16 @@ def splitOSC( filename, outputDir, maxElements) :
 	print ""
 
 try:
-    parser = optparse.OptionParser(description='Splits an OSC files into smaller chunks.',usage='osmsplit.py [options] uploadfile1.osc')
+    parser = optparse.OptionParser(description='Splits an Open Street Map change set file (OSC) into smaller OSC files.',usage='osmsplit.py [options] uploadfile1.osc')
 
     parser.add_option(
         '--outputDir',
-        help='Output directory for split files',
+        help='output directory for split files',
         dest='outputDir',
         default='.')
     parser.add_option(
         '--maxElements',
-        help='Maximum Element Count',
+        help='maximum elements in each output OSC file',
         dest='maxElements',
         type='int',
         default=10000)
