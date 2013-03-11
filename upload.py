@@ -295,9 +295,6 @@ try:
         if os.path.exists(diff_fn):
             sys.stderr.write("Diff file %r already exists, delete it " \
                     "if you're sure you want to re-upload\n" % (diff_fn,))
-            f = open('logFile','a')
-            f.write('DiffExists')
-            sys.exit(1)
         
         if filename.endswith(".osc"):
             comment_fn = filename[:-4] + ".comment"
