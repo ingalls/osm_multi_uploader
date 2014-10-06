@@ -1,6 +1,9 @@
 osm_multi_uploader
 ==================
 
+### DEPRECATED.
+
+
 A python wrapper around the bulk_upload.py script. This script will take a directory of .osm files and route them through the bulk_upload.py script.
 
 The script will handle breaking large files up into uploads that will fit into a single change set, and will robustly handle errors in the upload.
